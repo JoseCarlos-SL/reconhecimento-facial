@@ -18,12 +18,15 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 USERS_DB_PATH = os.path.join(DATA_DIR, "users.json")
 
 # --- Configurações da câmera ---
-CAMERA_INDEX = 0          # Índice da webcam (0 = padrão)
+# Pode ser o índice da webcam (ex: 0, 1) ou a URL do IP Webcam
+# Exemplo IP Webcam: "http://192.168.1.15:8080/video"
+CAMERA_SOURCE = 0        # Url da camera
 CAMERA_WIDTH = 640        # Largura do quadro capturado
 CAMERA_HEIGHT = 480       # Altura do quadro capturado
 
 # --- Parâmetros do YuNet (detecção facial) ---
-YUNET_SCORE_THRESHOLD = 0.9    # Confiança mínima para considerar uma detecção
+# 0.6 é o valor padrão recomendado pela documentação do OpenCV Zoo
+YUNET_SCORE_THRESHOLD = 0.6    # Confiança mínima para considerar uma detecção
 YUNET_NMS_THRESHOLD = 0.3      # Supressão de não-máximos
 YUNET_TOP_K = 5000             # Número máximo de candidatos antes do NMS
 
