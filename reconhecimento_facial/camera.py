@@ -8,21 +8,24 @@ import config
 
 def abrir_camera():
     """
-    Abre a webcam configurada e define a resolução.
+    Abre a webcam ou stream IP configurado e define a resolução.
     Retorna o objeto VideoCapture ou None se falhar.
     """
-    cap = cv2.VideoCapture(config.CAMERA_INDEX)
+    origem = getattr(config, "CAMERA_SOURCE", getattr(config, "CAMERA_INDEX", 0))
+    cap = cv2.VideoCapture(origem)
 
     if not cap.isOpened():
-        print("[ERRO] Não foi possível abrir a câmera.")
+        print(f"[ERRO] Não foi possível abrir a câmera/fluxo: {origem}")
         return None
 
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.CAMERA_WIDTH)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.CAMERA_HEIGHT)
+    # Se for webcam local (int), tenta definir a resolução desejada
+    if isinstance(origem, int):
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.CAMERA_WIDTH)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.CAMERA_HEIGHT)
 
     largura = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     altura = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    print(f"[INFO] Câmera aberta com sucesso ({largura}x{altura}).")
+    print(f"[INFO] Câmera aberta com sucesso ({largura}x{altura}) a partir de: {origem}")
 
     return cap
 

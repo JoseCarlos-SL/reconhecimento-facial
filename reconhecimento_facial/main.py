@@ -27,9 +27,10 @@ def exibir_menu():
     print("  SISTEMA DE IDENTIFICAÇÃO E AUTENTICAÇÃO BIOMÉTRICA")
     print("=" * 55)
     print()
-    print("  [1] Cadastrar usuários")
-    print("  [2] Iniciar reconhecimento facial")
-    print("  [3] Listar usuários cadastrados")
+    print("  [1] Cadastrar usuários (Câmera ou Foto)")
+    print("  [2] Iniciar reconhecimento facial (Webcam ao vivo)")
+    print("  [3] Reconhecer usuário por foto/imagem")
+    print("  [4] Listar usuários cadastrados")
     print("  [0] Sair")
     print()
 
@@ -158,6 +159,51 @@ def opcao_reconhecimento():
     camera.encerrar_camera(cap)
 
 
+def opcao_reconhecimento_foto():
+    """
+    Executa o reconhecimento facial a partir de uma foto/imagem no disco.
+    """
+    usuarios = user_database.carregar_usuarios()
+    valido, msg = user_database.validar_banco(usuarios)
+
+    if not valido:
+        print(f"[ERRO] {msg}")
+        print("[INFO] Cadastre os 3 usuários antes de testar o reconhecimento.")
+        return
+
+    caminho = input("\nDigite o caminho da imagem de teste (ex: imagens/teste.jpg): ").strip()
+    imagem, caminho_resolvido = user_database.carregar_imagem_disco(caminho)
+
+    if imagem is None:
+        if not os.path.exists(caminho_resolvido):
+            print(f"[ERRO] Arquivo não encontrado: {caminho_resolvido}")
+        else:
+            print(f"[ERRO] Não foi possível abrir o arquivo de imagem: {caminho_resolvido}")
+        return
+
+    altura, largura = imagem.shape[:2]
+    detector = face_detector.criar_detector(largura, altura)
+    reconhecedor = face_recognizer.criar_reconhecedor()
+
+    if detector is None or reconhecedor is None:
+        access_control.processar_erro("Falha ao carregar modelos de IA")
+        return
+
+    encontrou, faces = face_detector.detectar_rosto(detector, imagem)
+    if not encontrou or faces is None:
+        access_control.processar_erro("Nenhum rosto detectado na imagem fornecida")
+        return
+
+    caracteristicas = face_recognizer.extrair_caracteristicas(reconhecedor, imagem, faces[0])
+    if caracteristicas is None:
+        access_control.processar_erro("Falha ao extrair características faciais")
+        return
+
+    print(f"[INFO] Processando reconhecimento para imagem: {os.path.basename(caminho_resolvido)}")
+    # Processa identificação + autorização + exibição
+    access_control.processar_acesso(reconhecedor, caracteristicas, usuarios)
+
+
 def main():
     """Função principal — loop do menu."""
     print("\n" + "=" * 55)
@@ -179,6 +225,8 @@ def main():
         elif opcao == "2":
             opcao_reconhecimento()
         elif opcao == "3":
+            opcao_reconhecimento_foto()
+        elif opcao == "4":
             opcao_listar()
         elif opcao == "0":
             print("\n[INFO] Sistema encerrado. Até logo!\n")
